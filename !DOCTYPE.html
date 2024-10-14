@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Memorama con Símbolos y Colores</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-template-rows: repeat(4, 100px);
+            gap: 10px;
+        }
+        .card {
+            width: 100px;
+            height: 100px;
+            background-color: #0100ec; /* Color inicial */
+            color: white;
+            font-size: 36px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .card.revealed {
+            background-color: #c805d8; /* Color cuando está revelada */
+            color: white;
+            cursor: default;
+            transform: scale(1.05);
+        }
+        .card.matched {
+            background-color: #4CAF50;
+            color: #fff;
+            cursor: default;
+        }
+        #win-message {
+            position: absolute;
+            display: none;
+            font-size: 50px;
+            color: #4CAF50;
+            background-color: white;
+            padding: 20px;
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+<div id="win-message">¡Felicidades!</div>
+<div id="game-board"></div>
+
+<script>
+    // Crear el tablero y las cartas con símbolos
+    const gameBoard = document.getElementById('game-board');
+    const winMessage = document.getElementById('win-message');
+    let cardsArray = [];
+    let revealedCards = [];
+    let matchedCards = [];
+
+    // Crear pares de símbolos
+    const symbols = ['♠', '♥', '♦', '♣', '★', '☀', '☂', '♫'];
+    const cardValues = symbols.concat(symbols);  // Duplicar los símbolos para formar pares
+    cardValues.sort(() => 0.5 - Math.random());  // Barajar las cartas
+
+    // Crear elementos de las cartas
+    for (let i = 0; i < 16; i++) {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.value = cardValues[i];
+        card.innerHTML = '?';  // Mostrar el valor oculto
+        card.addEventListener('click', () => revealCard(card));
+        gameBoard.appendChild(card);
+        cardsArray.push(card);
+    }
+
+    // Función para revelar las cartas
+    function revealCard(card) {
+        if (revealedCards.length < 2 && !card.classList.contains('revealed') && !card.classList.contains('matched')) {
+            card.classList.add('revealed');
+            card.innerHTML = card.dataset.value;
+            revealedCards.push(card);
+
+            if (revealedCards.length === 2) {
+                checkMatch();
+            }
+        }
+    }
+
+    // Comprobar si las dos cartas reveladas son iguales
+    function checkMatch() {
+        const [card1, card2] = revealedCards;
+
+        if (card1.dataset.value === card2.dataset.value) {
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            matchedCards.push(card1, card2);
+            checkWin();
+        } else {
+            setTimeout(() => {
+                card1.classList.remove('revealed');
+                card2.classList.remove('revealed');
+                card1.innerHTML = '?';
+                card2.innerHTML = '?';
+            }, 1000);
+        }
+
+        revealedCards = [];
+    }
+
+    // Verificar si el jugador ha ganado
+    function checkWin() {
+        if (matchedCards.length === cardsArray.length) {
+            setTimeout(() => {
+                winMessage.style.display = 'block';  // Mostrar mensaje de victoria
+            }, 500);
+        }
+    }
+
+    // Reiniciar el juego (opcional si se quiere reiniciar tras victoria)
+    function resetGame() {
+        winMessage.style.display = 'none';
+        cardsArray.forEach(card => {
+            card.classList.remove('revealed', 'matched');
+            card.innerHTML = '?';
+        });
+        revealedCards = [];
+        matchedCards = [];
+
+        // Re-barajar las cartas
+        cardValues.sort(() => 0.5 - Math.random());
+        cardsArray.forEach((card, index) => {
+            card.dataset.value = cardValues[index];
+        });
+    }
+</script>
+
+</body>
+</html>
